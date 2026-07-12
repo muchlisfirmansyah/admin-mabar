@@ -35,6 +35,9 @@ jobs:
       - name: Build SPA
         run: npm run build
 
+      - name: Add SPA fallback
+        run: cp build/client/index.html build/client/404.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
