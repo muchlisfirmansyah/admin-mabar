@@ -13,7 +13,7 @@ import "./app.css";
 export const links: Route.LinksFunction = () => [
   {
     rel: "preload",
-    href: "/font/Montserrat/Montserrat-VariableFont_wght.ttf",
+    href: `${import.meta.env.BASE_URL}font/Montserrat/Montserrat-VariableFont_wght.ttf`,
     as: "font",
     type: "font/ttf",
     crossOrigin: "anonymous",
