@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: "main"
+    branches: 'main'
 
 permissions:
   contents: read
@@ -10,7 +10,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: true
 
 jobs:
@@ -35,8 +35,6 @@ jobs:
       - name: Build SPA
         run: npm run build
 
-      # GitHub Pages has no SPA rewrite; serving index.html as the 404 page
-      # lets client-side routes load on refresh/deep link
       - name: Add SPA fallback
         run: cp build/client/index.html build/client/404.html
 
