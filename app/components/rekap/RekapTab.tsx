@@ -1,7 +1,6 @@
-import { History, Trophy } from "lucide-react";
+import { History } from "lucide-react";
 import { useMabar } from "../../context/MabarContext";
 import { FinishedMatchCard } from "./FinishedMatchCard";
-import { Leaderboard } from "./Leaderboard";
 
 export function RekapTab() {
   const { matches, playerStats, totalKokUsed } = useMabar();
@@ -46,12 +45,6 @@ export function RekapTab() {
           )}
         </div>
       </div>
-
-      {/* --- KLASEMEN --- */}
-      <h2 className="text-lg font-bold text-gray-800 mb-2 px-1 mt-6 flex items-center gap-2">
-        <Trophy size={20} className="text-yellow-500" /> Klasemen
-      </h2>
-      <Leaderboard />
 
       {/* --- RIWAYAT PERTANDINGAN --- */}
       <h2 className="text-lg font-bold text-gray-800 mb-4 px-1 mt-6">Riwayat Pertandingan</h2>

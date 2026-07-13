@@ -1,5 +1,6 @@
 import { PieChart } from "lucide-react";
 import { useMabar } from "../../context/MabarContext";
+import { formatNumberInput, parseNumberInput } from "../../lib/format";
 
 export function ExpenseForm() {
   const {
@@ -30,20 +31,20 @@ export function ExpenseForm() {
             <div className="w-1/3">
               <label className="text-[10px] text-gray-500">Jml Slop</label>
               <input
-                type="number"
-                min="0"
-                value={expKokSlopQty}
-                onChange={(e) => setExpKokSlopQty(Number(e.target.value))}
+                type="text"
+                inputMode="numeric"
+                value={expKokSlopQty === 0 ? "" : formatNumberInput(expKokSlopQty)}
+                onChange={(e) => setExpKokSlopQty(parseNumberInput(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm outline-none bg-white"
               />
             </div>
             <div className="flex-1">
               <label className="text-[10px] text-gray-500">Harga per Slop (Rp)</label>
               <input
-                type="number"
-                min="0"
-                value={expKokSlopPrice}
-                onChange={(e) => setExpKokSlopPrice(Number(e.target.value))}
+                type="text"
+                inputMode="numeric"
+                value={expKokSlopPrice === 0 ? "" : formatNumberInput(expKokSlopPrice)}
+                onChange={(e) => setExpKokSlopPrice(parseNumberInput(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm outline-none bg-white"
               />
             </div>
@@ -58,20 +59,20 @@ export function ExpenseForm() {
             <div className="w-1/3">
               <label className="text-[10px] text-gray-500">Jml Satuan</label>
               <input
-                type="number"
-                min="0"
-                value={expKokSatuanQty}
-                onChange={(e) => setExpKokSatuanQty(Number(e.target.value))}
+                type="text"
+                inputMode="numeric"
+                value={expKokSatuanQty === 0 ? "" : formatNumberInput(expKokSatuanQty)}
+                onChange={(e) => setExpKokSatuanQty(parseNumberInput(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm outline-none bg-white"
               />
             </div>
             <div className="flex-1">
               <label className="text-[10px] text-gray-500">Harga per Satuan (Rp)</label>
               <input
-                type="number"
-                min="0"
-                value={expKokSatuanPrice}
-                onChange={(e) => setExpKokSatuanPrice(Number(e.target.value))}
+                type="text"
+                inputMode="numeric"
+                value={expKokSatuanPrice === 0 ? "" : formatNumberInput(expKokSatuanPrice)}
+                onChange={(e) => setExpKokSatuanPrice(parseNumberInput(e.target.value))}
                 className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm outline-none bg-white"
               />
             </div>
@@ -83,10 +84,10 @@ export function ExpenseForm() {
             Sewa Lapangan Total (Rp)
           </label>
           <input
-            type="number"
-            min="0"
-            value={expLapangan}
-            onChange={(e) => setExpLapangan(Number(e.target.value))}
+            type="text"
+            inputMode="numeric"
+            value={expLapangan === 0 ? "" : formatNumberInput(expLapangan)}
+            onChange={(e) => setExpLapangan(parseNumberInput(e.target.value))}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none"
           />
         </div>
@@ -96,10 +97,10 @@ export function ExpenseForm() {
             Pengeluaran Lain-lain (Minum, Parkir, dll)
           </label>
           <input
-            type="number"
-            min="0"
-            value={expLain}
-            onChange={(e) => setExpLain(Number(e.target.value))}
+            type="text"
+            inputMode="numeric"
+            value={expLain === 0 ? "" : formatNumberInput(expLain)}
+            onChange={(e) => setExpLain(parseNumberInput(e.target.value))}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none"
           />
         </div>

@@ -40,7 +40,7 @@ interface MabarContextValue {
   // Auto-pairing & antrean
   queue: QueuedMatch[];
   generateMatches: (count: number) => void;
-  startQueuedMatch: (queueId: number) => void;
+  startQueuedMatch: (queueId: number, court?: number) => void;
   cancelQueuedMatch: (queueId: number) => void;
   updateQueuedPlayer: (
     queueId: number,
@@ -249,10 +249,13 @@ export function MabarProvider({ children }: { children: ReactNode }) {
       showAlert("Pilih minimal 2 pemain untuk memulai pertandingan!");
       return;
     }
-    if (activeMatchCount >= numCourts) {
+
+    const availableCourt = nextFreeCourt();
+    if (availableCourt === undefined) {
       showAlert(`Semua lapangan sedang dipakai (${numCourts} lapangan). Selesaikan match yang berjalan dulu.`);
       return;
     }
+
     const newMatch: Match = {
       id: Date.now(),
       players: selectedPlayers,
@@ -260,7 +263,7 @@ export function MabarProvider({ children }: { children: ReactNode }) {
       scoreA: 0,
       scoreB: 0,
       status: "active",
-      court: nextFreeCourt(),
+      court: availableCourt,
     };
     setMatches((prev) => [newMatch, ...prev]);
     setSelectedPlayers([]);
@@ -318,12 +321,17 @@ export function MabarProvider({ children }: { children: ReactNode }) {
     // Pemain yang masih terikat match berjalan / antrean sebelumnya —
     // generator memilih kombinasi yang menyentuh sesedikit mungkin kelompok
     // ini agar match baru bisa main begitu satu lapangan kosong.
-    const blockingUnits = [
-      ...matches.filter((m) => m.status === "active").map((m) => m.players),
-      ...queue.map((q) => [...q.teamA, ...q.teamB]),
-    ];
+    const activeUnits = matches
+      .filter((m) => m.status === "active")
+      .map((m) => m.players);
+    const blockingUnits = [...activeUnits, ...queue.map((q) => [...q.teamA, ...q.teamB])];
 
-    const results = generateBalancedMatches(candidates, count, blockingUnits);
+    // Pemain yang sedang di lapangan tidak boleh memblokir pemain bebas
+    // mengisi lapangan kosong (aturan selisih jumlah main dilonggarkan
+    // untuk mereka, dan kombinasi tanpa mereka diprioritaskan).
+    const playingIds = activeUnits.flat();
+
+    const results = generateBalancedMatches(candidates, count, blockingUnits, playingIds);
 
     if (results.length === 0) {
       showAlert(
@@ -344,11 +352,12 @@ export function MabarProvider({ children }: { children: ReactNode }) {
     ]);
   };
 
-  const startQueuedMatch = (queueId: number) => {
+  const startQueuedMatch = (queueId: number, court?: number) => {
     const queued = queue.find((q) => q.id === queueId);
     if (!queued) return;
 
-    if (activeMatchCount >= numCourts) {
+    const availableCourt = court ?? nextFreeCourt();
+    if (court === undefined && availableCourt === undefined) {
       showAlert(`Semua lapangan sedang dipakai (${numCourts} lapangan). Selesaikan match yang berjalan dulu.`);
       return;
     }
@@ -362,6 +371,16 @@ export function MabarProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    if (court !== undefined) {
+      const courtInUse = matches.some(
+        (m) => m.status === "active" && m.court === court
+      );
+      if (courtInUse) {
+        showAlert(`Lapangan ${court} masih dipakai. Pilih lapangan lain atau selesaikan match di lapangan tersebut.`);
+        return;
+      }
+    }
+
     const newMatch: Match = {
       id: Date.now(),
       players: ids,
@@ -369,7 +388,7 @@ export function MabarProvider({ children }: { children: ReactNode }) {
       scoreA: 0,
       scoreB: 0,
       status: "active",
-      court: nextFreeCourt(),
+      court: availableCourt,
     };
     setMatches((prev) => [newMatch, ...prev]);
     setQueue((prev) => prev.filter((q) => q.id !== queueId));

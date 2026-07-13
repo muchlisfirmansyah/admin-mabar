@@ -25,19 +25,31 @@ const MAX_PLAY_GAP = 1;
 /**
  * Cari satu pasangan match 2v2 yang seimbang:
  * - Selisih total skor level antar tim maksimal 1.
- * - Setelah match terbentuk, selisih jumlah main antar semua pemain hadir maksimal 1.
+ * - Setelah match terbentuk, selisih jumlah main antar pemain hadir maksimal 1.
+ *   Pemain yang SEDANG main di lapangan (`playingIds`) tidak ikut dihitung
+ *   pada aturan ini kecuali ia bagian dari kombinasi — jumlah mainnya sedang
+ *   bertambah, jadi ia tidak boleh memblokir pemain bebas mengisi lapangan
+ *   kosong.
  *
- * `blockingUnits` berisi kelompok pemain yang masih terikat match lain (sedang
- * main di lapangan atau sudah masuk antrean sebelumnya). Kombinasi yang
- * menyentuh lebih sedikit kelompok diprioritaskan, sehingga match antrean bisa
- * langsung dimainkan begitu SATU lapangan selesai — tidak perlu menunggu semua.
+ * Prioritas pemilihan dari semua kombinasi valid:
+ * 1. Paling sedikit memakai pemain yang sedang main — kombinasi yang bisa
+ *    langsung dimainkan di lapangan kosong selalu menang dari kombinasi yang
+ *    harus menunggu match lain selesai.
+ * 2. Total jumlah main ke-4 pemain paling kecil — pemain yang paling jarang
+ *    main didahulukan.
+ * 3. Ketergantungan paling sedikit. `blockingUnits` berisi kelompok pemain
+ *    yang masih terikat match lain (sedang main di lapangan atau sudah masuk
+ *    antrean sebelumnya). Kombinasi yang menyentuh lebih sedikit kelompok
+ *    diprioritaskan, sehingga match antrean bisa langsung dimainkan begitu
+ *    SATU lapangan selesai — tidak perlu menunggu semua.
  *
  * Dari kandidat terbaik, dipilih satu secara acak. Mengembalikan null jika
  * pemain kurang dari 4 atau tidak ada kombinasi yang memenuhi aturan.
  */
 export function generateBalancedMatch(
   candidates: PairingCandidate[],
-  blockingUnits: number[][] = []
+  blockingUnits: number[][] = [],
+  playingIds: number[] = []
 ): PairingResult | null {
   if (candidates.length < 4) return null;
 
@@ -47,8 +59,13 @@ export function generateBalancedMatch(
   const blockingSets = blockingUnits.map((unit) => new Set(unit));
   const dependencyCount = (ids: number[]) =>
     blockingSets.filter((unit) => ids.some((id) => unit.has(id))).length;
+  const playingSet = new Set(playingIds);
 
-  const validMatches: (PairingResult & { dependencies: number })[] = [];
+  const validMatches: (PairingResult & {
+    dependencies: number;
+    countSum: number;
+    busyCount: number;
+  })[] = [];
 
   for (let i = 0; i < pool.length - 3; i++) {
     for (let j = i + 1; j < pool.length - 2; j++) {
@@ -62,7 +79,9 @@ export function generateBalancedMatch(
           ];
 
           const selectedIds = new Set(four.map((p) => p.id));
-          const projected = sorted.map((p) => (selectedIds.has(p.id) ? p.count + 1 : p.count));
+          const projected = sorted
+            .filter((p) => selectedIds.has(p.id) || !playingSet.has(p.id))
+            .map((p) => (selectedIds.has(p.id) ? p.count + 1 : p.count));
           const playGap = Math.max(...projected) - Math.min(...projected);
           if (playGap > MAX_PLAY_GAP) continue;
 
@@ -74,6 +93,8 @@ export function generateBalancedMatch(
                 teamA: teamA.map((p) => p.id),
                 teamB: teamB.map((p) => p.id),
                 dependencies: dependencyCount([...four].map((p) => p.id)),
+                countSum: four.reduce((sum, p) => sum + p.count, 0),
+                busyCount: four.filter((p) => playingSet.has(p.id)).length,
               });
             }
           }
@@ -84,9 +105,20 @@ export function generateBalancedMatch(
 
   if (validMatches.length === 0) return null;
 
-  // Ambil hanya kombinasi dengan ketergantungan paling sedikit, lalu acak
-  const minDeps = Math.min(...validMatches.map((m) => m.dependencies));
-  const best = validMatches.filter((m) => m.dependencies === minDeps);
+  // Prioritas 1: paling sedikit pemain yang sedang main — match yang bisa
+  // langsung mengisi lapangan kosong selalu didahulukan.
+  const minBusy = Math.min(...validMatches.map((m) => m.busyCount));
+  const playable = validMatches.filter((m) => m.busyCount === minBusy);
+
+  // Prioritas 2: kombinasi dengan total jumlah main paling kecil — pemain
+  // yang paling jarang main (dan levelnya bisa membentuk match seimbang)
+  // selalu didahulukan.
+  const minCountSum = Math.min(...playable.map((m) => m.countSum));
+  const fewestPlayed = playable.filter((m) => m.countSum === minCountSum);
+
+  // Prioritas 3: ketergantungan paling sedikit, lalu acak
+  const minDeps = Math.min(...fewestPlayed.map((m) => m.dependencies));
+  const best = fewestPlayed.filter((m) => m.dependencies === minDeps);
   const picked = best[Math.floor(Math.random() * best.length)];
   return { teamA: picked.teamA, teamB: picked.teamB };
 }
@@ -101,6 +133,7 @@ export function generateBalancedMatches(
   base: PairingCandidate[],
   count: number,
   blockingUnits: number[][] = [],
+  playingIds: number[] = [],
   attempts = 15
 ): PairingResult[] {
   let best: PairingResult[] = [];
@@ -112,7 +145,7 @@ export function generateBalancedMatches(
 
     for (let i = 0; i < count; i++) {
       const candidates = base.map((p) => ({ ...p, count: counts.get(p.id)! }));
-      const match = generateBalancedMatch(candidates, units);
+      const match = generateBalancedMatch(candidates, units, playingIds);
       if (!match) break;
       result.push(match);
       const ids = [...match.teamA, ...match.teamB];

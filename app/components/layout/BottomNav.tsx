@@ -1,4 +1,4 @@
-import { Activity, History, PieChart, Users, Wallet, type LucideIcon } from "lucide-react";
+import { Activity, History, PieChart, Trophy, Users, Wallet, type LucideIcon } from "lucide-react";
 import type { TabId } from "../../types/mabar";
 
 interface NavItem {
@@ -11,6 +11,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "pemain", label: "Pemain", icon: Users },
   { id: "pertandingan", label: "Match", icon: Activity },
   { id: "rekap", label: "Rekap", icon: History },
+  { id: "klasemen", label: "Klasemen", icon: Trophy },
   { id: "tagihan", label: "Resume", icon: Wallet },
   { id: "keuangan", label: "Keuangan", icon: PieChart },
 ];
