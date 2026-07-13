@@ -8,6 +8,7 @@ import { AppModal } from "./modals/AppModal";
 import { PemainTab } from "./pemain/PemainTab";
 import { PertandinganTab } from "./pertandingan/PertandinganTab";
 import { RekapTab } from "./rekap/RekapTab";
+import { KlasemenTab } from "./klasemen/KlasemenTab";
 import { TagihanTab } from "./tagihan/TagihanTab";
 import { KeuanganTab } from "./keuangan/KeuanganTab";
 
@@ -28,6 +29,7 @@ export function MabarApp() {
           {activeTab === "pemain" && <PemainTab />}
           {activeTab === "pertandingan" && <PertandinganTab />}
           {activeTab === "rekap" && <RekapTab />}
+          {activeTab === "klasemen" && <KlasemenTab />}
           {activeTab === "tagihan" && <TagihanTab />}
           {activeTab === "keuangan" && <KeuanganTab />}
         </main>

@@ -49,4 +49,4 @@ export interface ModalState {
   onConfirm: (() => void) | null;
 }
 
-export type TabId = "pemain" | "pertandingan" | "rekap" | "tagihan" | "keuangan";
+export type TabId = "pemain" | "pertandingan" | "rekap" | "klasemen" | "tagihan" | "keuangan";
