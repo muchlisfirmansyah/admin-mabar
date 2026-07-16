@@ -32,6 +32,7 @@ interface MabarContextValue {
   selectedPlayers: number[];
   toggleSelectPlayer: (id: number) => void;
   createMatch: () => void;
+  queueManualMatch: () => void;
   updateKok: (matchId: number, delta: number) => void;
   deleteMatch: (matchId: number) => void;
   updateScore: (matchId: number, team: "scoreA" | "scoreB", score: string) => void;
@@ -118,7 +119,7 @@ export function MabarProvider({ children }: { children: ReactNode }) {
   const [playerAdjustments, setPlayerAdjustments] = useState<Record<number, number>>({});
 
   // Pengaturan mabar
-  const [numCourts, setNumCourts] = useState(2);
+  const [numCourts, setNumCourts] = useState(1);
   const [paymentMode, setPaymentMode] = useState<PaymentMode>("lapangan_kok");
   const [allInFee, setAllInFee] = useState(35000);
   const [shuttlecockPrice, setShuttlecockPrice] = useState(3000);
@@ -216,12 +217,8 @@ export function MabarProvider({ children }: { children: ReactNode }) {
 
   // --- ACTIONS: PERTANDINGAN ---
   const toggleSelectPlayer = (id: number) => {
-    const isBusy = matches.some((m) => m.status === "active" && m.players.includes(id));
-    if (isBusy) {
-      showAlert("Pemain ini sedang bermain di pertandingan aktif dan belum selesai.");
-      return;
-    }
-
+    // Pemain yang sedang main tetap boleh dipilih — match manual bisa
+    // dimasukkan ke antrean dan dimainkan setelah match berjalan selesai.
     if (selectedPlayers.includes(id)) {
       setSelectedPlayers(selectedPlayers.filter((pid) => pid !== id));
     } else if (selectedPlayers.length < 4) {
@@ -250,9 +247,24 @@ export function MabarProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const busyNames = selectedPlayers
+      .filter((id) =>
+        matches.some((m) => m.status === "active" && m.players.includes(id))
+      )
+      .map((id) => players.find((p) => p.id === id)?.name)
+      .filter(Boolean);
+    if (busyNames.length > 0) {
+      showAlert(
+        `Pemain ${busyNames.join(", ")} masih bermain. Gunakan "Tambah ke Antrean" agar match ini bisa dimainkan setelah mereka selesai.`
+      );
+      return;
+    }
+
     const availableCourt = nextFreeCourt();
     if (availableCourt === undefined) {
-      showAlert(`Semua lapangan sedang dipakai (${numCourts} lapangan). Selesaikan match yang berjalan dulu.`);
+      showAlert(
+        `Semua lapangan sedang dipakai (${numCourts} lapangan). Gunakan "Tambah ke Antrean" agar match ini bisa dimainkan begitu ada lapangan kosong.`
+      );
       return;
     }
 
@@ -266,6 +278,26 @@ export function MabarProvider({ children }: { children: ReactNode }) {
       court: availableCourt,
     };
     setMatches((prev) => [newMatch, ...prev]);
+    setSelectedPlayers([]);
+  };
+
+  // Match manual masuk antrean — urutan pilih menentukan tim (paruh pertama
+  // jadi Tim A), sama dengan pembagian tim di splitTeams.
+  const queueManualMatch = () => {
+    if (selectedPlayers.length < 2) {
+      showAlert("Pilih minimal 2 pemain untuk membuat antrean!");
+      return;
+    }
+
+    const half = Math.ceil(selectedPlayers.length / 2);
+    setQueue((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        teamA: selectedPlayers.slice(0, half),
+        teamB: selectedPlayers.slice(half),
+      },
+    ]);
     setSelectedPlayers([]);
   };
 
@@ -474,6 +506,7 @@ export function MabarProvider({ children }: { children: ReactNode }) {
     selectedPlayers,
     toggleSelectPlayer,
     createMatch,
+    queueManualMatch,
     updateKok,
     deleteMatch,
     updateScore,

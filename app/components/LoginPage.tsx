@@ -28,7 +28,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
           <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
             <Lock size={32} className="text-black" />
           </div>
-          <h1 className="text-2xl font-black text-yellow-400 tracking-wider">ADMIN MABAR</h1>
+          <h1 className="text-2xl font-black text-yellow-400 tracking-wider">PONDE CLICK</h1>
           <p className="text-gray-400 text-sm mt-1">Silakan login untuk melanjutkan</p>
         </div>
 
@@ -68,7 +68,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               type="submit"
               className="w-full bg-yellow-400 text-black font-black py-3 rounded-xl mt-4 hover:bg-yellow-500 transition-colors flex items-center justify-center gap-2 shadow-md"
             >
-              <LogIn size={20} /> Masuk Sistem
+              <LogIn size={20} /> Sign In
             </button>
           </form>
         </div>
