@@ -7,6 +7,7 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
+import { usePersistentState } from "../hooks/usePersistentState";
 import { getLocalDate } from "../lib/format";
 import { generateBalancedMatches } from "../lib/pairing";
 import type {
@@ -112,29 +113,46 @@ const CLOSED_MODAL: ModalState = {
 };
 
 export function MabarProvider({ children }: { children: ReactNode }) {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [queue, setQueue] = useState<QueuedMatch[]>([]);
-  const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
-  const [playerAdjustments, setPlayerAdjustments] = useState<Record<number, number>>({});
+  const [players, setPlayers] = usePersistentState<Player[]>("players", []);
+  const [matches, setMatches] = usePersistentState<Match[]>("matches", []);
+  const [queue, setQueue] = usePersistentState<QueuedMatch[]>("queue", []);
+  const [selectedPlayers, setSelectedPlayers] = usePersistentState<number[]>(
+    "selectedPlayers",
+    []
+  );
+  const [playerAdjustments, setPlayerAdjustments] = usePersistentState<
+    Record<number, number>
+  >("playerAdjustments", {});
 
   // Pengaturan mabar
-  const [numCourts, setNumCourts] = useState(1);
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>("lapangan_kok");
-  const [allInFee, setAllInFee] = useState(35000);
-  const [shuttlecockPrice, setShuttlecockPrice] = useState(3000);
-  const [baseFee, setBaseFee] = useState(0);
-  const [gorName, setGorName] = useState("");
-  const [pbName, setPbName] = useState("ADMIN PONDE");
-  const [matchDate, setMatchDate] = useState(getLocalDate());
+  const [numCourts, setNumCourts] = usePersistentState("numCourts", 1);
+  const [paymentMode, setPaymentMode] = usePersistentState<PaymentMode>(
+    "paymentMode",
+    "lapangan_kok"
+  );
+  const [allInFee, setAllInFee] = usePersistentState("allInFee", 35000);
+  const [shuttlecockPrice, setShuttlecockPrice] = usePersistentState(
+    "shuttlecockPrice",
+    3000
+  );
+  const [baseFee, setBaseFee] = usePersistentState("baseFee", 0);
+  const [gorName, setGorName] = usePersistentState("gorName", "");
+  const [pbName, setPbName] = usePersistentState("pbName", "ADMIN PONDE");
+  const [matchDate, setMatchDate] = usePersistentState("matchDate", () => getLocalDate());
 
   // Pengeluaran
-  const [expKokSlopQty, setExpKokSlopQty] = useState(0);
-  const [expKokSlopPrice, setExpKokSlopPrice] = useState(110000);
-  const [expKokSatuanQty, setExpKokSatuanQty] = useState(0);
-  const [expKokSatuanPrice, setExpKokSatuanPrice] = useState(10000);
-  const [expLapangan, setExpLapangan] = useState(0);
-  const [expLain, setExpLain] = useState(0);
+  const [expKokSlopQty, setExpKokSlopQty] = usePersistentState("expKokSlopQty", 0);
+  const [expKokSlopPrice, setExpKokSlopPrice] = usePersistentState(
+    "expKokSlopPrice",
+    110000
+  );
+  const [expKokSatuanQty, setExpKokSatuanQty] = usePersistentState("expKokSatuanQty", 0);
+  const [expKokSatuanPrice, setExpKokSatuanPrice] = usePersistentState(
+    "expKokSatuanPrice",
+    10000
+  );
+  const [expLapangan, setExpLapangan] = usePersistentState("expLapangan", 0);
+  const [expLain, setExpLain] = usePersistentState("expLain", 0);
 
   const [modal, setModal] = useState<ModalState>(CLOSED_MODAL);
 

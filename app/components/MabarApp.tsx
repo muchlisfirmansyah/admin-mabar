@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { MabarProvider } from "../context/MabarContext";
+import {
+  clearPersistentState,
+  usePersistentState,
+} from "../hooks/usePersistentState";
 import { createSession, destroySession, getSession } from "../lib/session";
 import type { TabId } from "../types/mabar";
 import { LoginPage } from "./LoginPage";
@@ -14,8 +18,14 @@ import { TagihanTab } from "./tagihan/TagihanTab";
 import { KeuanganTab } from "./keuangan/KeuanganTab";
 
 export function MabarApp() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => getSession() !== null);
-  const [activeTab, setActiveTab] = useState<TabId>("pemain");
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const hasSession = getSession() !== null;
+    // Sesi sudah habis/tidak ada — data mabar lama tidak boleh terbawa
+    // ke login berikutnya.
+    if (!hasSession) clearPersistentState();
+    return hasSession;
+  });
+  const [activeTab, setActiveTab] = usePersistentState<TabId>("activeTab", "pemain");
 
   const handleLoginSuccess = () => {
     createSession("admin");
@@ -24,6 +34,7 @@ export function MabarApp() {
 
   const handleLogout = () => {
     destroySession();
+    clearPersistentState();
     setIsAuthenticated(false);
   };
 
