@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Minus, Plus } from "lucide-react";
 import type { PlayerStat } from "../../types/mabar";
 
 interface AdjustPriceModalProps {
@@ -7,8 +8,14 @@ interface AdjustPriceModalProps {
   onClose: () => void;
 }
 
+type AdjustmentMode = "diskon" | "tambahan";
+
 export function AdjustPriceModal({ player, onSave, onClose }: AdjustPriceModalProps) {
-  const [amount, setAmount] = useState(player.adjustment || 0);
+  const initial = player.adjustment || 0;
+  const [mode, setMode] = useState<AdjustmentMode>(initial < 0 ? "diskon" : "tambahan");
+  const [amount, setAmount] = useState(Math.abs(initial));
+
+  const signedAmount = mode === "diskon" ? -Math.abs(amount) : Math.abs(amount);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -19,19 +26,45 @@ export function AdjustPriceModal({ player, onSave, onClose }: AdjustPriceModalPr
           <span className="font-bold text-black">{player.name}</span>
         </p>
 
+        <div className="flex bg-gray-100 p-1 rounded-lg mb-3">
+          <button
+            onClick={() => setMode("diskon")}
+            className={`flex-1 py-1.5 rounded-md flex items-center justify-center gap-1 text-xs font-bold transition-all ${
+              mode === "diskon"
+                ? "bg-white text-red-600 shadow"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <Minus size={14} /> Diskon
+          </button>
+          <button
+            onClick={() => setMode("tambahan")}
+            className={`flex-1 py-1.5 rounded-md flex items-center justify-center gap-1 text-xs font-bold transition-all ${
+              mode === "tambahan"
+                ? "bg-white text-emerald-600 shadow"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <Plus size={14} /> Tambahan
+          </button>
+        </div>
+
         <div className="mb-4">
           <label className="block text-xs font-bold text-gray-700 mb-1">
-            Nominal Adjustment (Rp)
+            Nominal {mode === "diskon" ? "Diskon" : "Tambahan"} (Rp)
           </label>
           <input
             type="number"
+            min="0"
             value={amount || ""}
-            onChange={(e) => setAmount(Number(e.target.value))}
+            onChange={(e) => setAmount(Math.abs(Number(e.target.value)))}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="Gunakan minus (-) untuk diskon"
+            placeholder="Contoh: 10000"
           />
           <p className="text-[10px] text-gray-400 mt-1">
-            Gunakan angka minus (contoh: -10000) untuk diskon.
+            {mode === "diskon"
+              ? "Tagihan pemain akan dikurangi sebesar nominal ini."
+              : "Tagihan pemain akan ditambah sebesar nominal ini."}
           </p>
         </div>
 
@@ -43,7 +76,7 @@ export function AdjustPriceModal({ player, onSave, onClose }: AdjustPriceModalPr
             Batal
           </button>
           <button
-            onClick={() => onSave(amount)}
+            onClick={() => onSave(signedAmount)}
             className="px-4 py-2 text-sm font-bold rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition"
           >
             Simpan

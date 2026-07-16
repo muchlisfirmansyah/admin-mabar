@@ -3,7 +3,7 @@ import { MabarApp } from "../components/MabarApp";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Admin Mabar" },
+    { title: "PONDE CLICK" },
     { name: "description", content: "Aplikasi admin mabar badminton" },
   ];
 }
